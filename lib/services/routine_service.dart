@@ -6,7 +6,7 @@ import 'package:myproject/models/routine_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RoutineService {
-  final String baseUrl = 'http://192.168.1.103:8080/api/routine';
+  final String baseUrl = 'https://alzheimerbackend.onrender.com/api/routine';
   final Logger _logger = Logger();
 
   Future<String?> getToken() async {

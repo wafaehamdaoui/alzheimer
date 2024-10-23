@@ -74,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // User's Profession
                   Text(
-                    _user!.profession,
+                    _user?.profession??'',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),

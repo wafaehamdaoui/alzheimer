@@ -126,7 +126,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
       appBar: AppBar(
         title: const Text('People To Remember'),
       ),
-      body: ListView(
+      body: _people.isEmpty? const Center(child: Text('No entries yet.'))
+      :ListView(
         padding: const EdgeInsets.all(10),
         children: [
           ..._people.map((person) => _buildPersonCard(person)).toList(),

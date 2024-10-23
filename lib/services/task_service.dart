@@ -5,7 +5,7 @@ import 'package:myproject/models/task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskService {
-  final String apiUrl = 'http://192.168.1.103:8080/api/tasks';
+  final String apiUrl = 'https://alzheimerbackend.onrender.com/api/tasks';
   final Logger _logger = Logger();
 
   // Retrieve the token from SharedPreferences

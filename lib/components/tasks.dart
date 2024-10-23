@@ -172,22 +172,37 @@ class _TasksScreenState extends State<TasksScreen> {
     }
   }
 
-  void _showAddTaskDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Task'),
-          content: Column(
+ void _showAddTaskDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text(
+          'Add New Task',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        content: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _taskController,
-                decoration: const InputDecoration(hintText: 'Enter task title'),
+                decoration: InputDecoration(
+                  labelText: 'Task title',
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  contentPadding: const EdgeInsets.all(10),
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Text(
                 "Selected Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                style: TextStyle(fontSize: 16),
               ),
               TextButton(
                 onPressed: () async {
@@ -204,25 +219,34 @@ class _TasksScreenState extends State<TasksScreen> {
                   }
                 },
                 child: const Text('Choose Date'),
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                ),
               ),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: _addTask,
+            child: const Text('Add'),
+            style: ElevatedButton.styleFrom(// Set text color
             ),
-            TextButton(
-              onPressed: _addTask,
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {

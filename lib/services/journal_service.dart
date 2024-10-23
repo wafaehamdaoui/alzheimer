@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
 import 'package:myproject/models/journal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class JournalService {
-  final String baseUrl = 'http://192.168.1.103:8080/api/journals'; 
-  final Logger _logger = Logger();
+  final String baseUrl = 'https://alzheimerbackend.onrender.com/api/journals'; 
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();

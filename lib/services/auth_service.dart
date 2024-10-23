@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:myproject/models/authentication_response.dart';
+import 'package:myproject/models/register_request.dart';
 import 'package:myproject/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,7 @@ class AuthService {
 
   // Method for user login
   Future<AuthenticationResponse?> login(String username, String password) async {
-    final url = Uri.parse('http://192.168.1.103:8080/api/users/auth/login');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/auth/login');
 
     final response = await http.post(
       url,
@@ -66,7 +67,7 @@ class AuthService {
 
   Future<User?> updateUserProfile(User updatedUser) async{
     final token = await getToken();
-    final url = Uri.parse('http://192.168.1.103:8080/api/users/${updatedUser.id}');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/${updatedUser.id}');
 
     try {
       final response = await http.post(
@@ -98,7 +99,7 @@ class AuthService {
   Future<User?> resetPassword(String newPassword) async{
     final token = await getToken();
     final user = await getUser();
-    final url = Uri.parse('http://192.168.1.103:8080/api/users/reset/${user!.id}');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/reset/${user!.id}');
 
     try {
       final response = await http.post(
@@ -130,7 +131,7 @@ class AuthService {
 
   Future<List<User>> getAllUser() async{
     final token = await getToken();
-    final url = Uri.parse('http://192.168.1.103:8080/api/users');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users');
 
     try {
       final response = await http.get(
@@ -157,7 +158,7 @@ class AuthService {
 
   inviteMember(String email) async {
     final token = await getToken();
-    final url = Uri.parse('http://192.168.1.103:8080/api/users/invite/$email');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/invite/$email');
     try {
       final response = await http.post(
         url,
@@ -181,7 +182,7 @@ class AuthService {
 
   toggleUserStatus(int id, bool isActivating) async{
     final token = await getToken();
-    final url = Uri.parse('http://192.168.1.103:8080/api/users/change-status/$id');
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/change-status/$id');
     try {
       final response = await http.patch(
         url,
@@ -203,5 +204,28 @@ class AuthService {
     }
   }
 
-  signUp(String text, String text2, String text3) {}
+  signUp(RegisterRequest request) async{
+    final url = Uri.parse('https://alzheimerbackend.onrender.com/api/users/auth/signup');
+
+    try {
+      final response = await http.post(
+      url,
+      body: jsonEncode(request),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+      if (response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+        User userRespone = User.fromJson(jsonResponse);
+
+        return userRespone;
+      } else {
+        _logger.e('Add failed: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+       _logger.e('Add failed: $e');
+    }
+  }
 }

@@ -31,6 +31,7 @@ class _SignInState extends State<SignIn> {
       if (response != null) {
         // Navigate to home after successful login
         Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pop(context);
       } else {
         // Show error if login failed
         ScaffoldMessenger.of(context).showSnackBar(
@@ -106,6 +107,7 @@ class _SignInState extends State<SignIn> {
                   labelText: 'password'.tr(),
                   iconData: Icons.lock,
                   isSecret: true,
+                  inputType: TextInputType.text,
                 ),
                 const SizedBox(height: 10),
                 StyledButton(

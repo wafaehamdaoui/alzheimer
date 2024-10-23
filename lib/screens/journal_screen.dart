@@ -21,7 +21,6 @@ class _JournalScreenState extends State<JournalScreen> {
     _fetchEntries(); 
   }
 
-  // Method to fetch journal entries
   Future<void> _fetchEntries() async {
     setState(() {
       _isLoading = true; 
@@ -41,7 +40,6 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
-  // Method to add a new journal entry
   Future<void> _addEntry() async {
     final String description = _textController.text;
     if (description.isNotEmpty) {
@@ -49,11 +47,10 @@ class _JournalScreenState extends State<JournalScreen> {
       try {
         final newEntry = await _journalService.addJournal(request);
         setState(() {
-          _entries.add(newEntry); // Add the new entry to the list
+          _entries.add(newEntry); 
         });
-        _textController.clear(); // Clear the text field after adding
+        _textController.clear(); 
       } catch (e) {
-        // Handle error (e.g., show a snackbar or alert)
         print('Error adding journal entry: $e');
       }
     }
@@ -100,9 +97,7 @@ class _JournalScreenState extends State<JournalScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator()) // Show loading indicator
-            : _entries.isEmpty
+        child: _entries.isEmpty
                 ? const Center(child: Text('No entries yet.'))
                 : ListView.builder(
                     itemCount: _entries.length,

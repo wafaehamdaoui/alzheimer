@@ -5,7 +5,7 @@ import 'package:myproject/models/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationService {
-  final String baseUrl = 'http://192.168.1.103:8080/api/locations';
+  final String baseUrl = 'https://alzheimerbackend.onrender.com/api/locations';
   final Logger _logger = Logger();
 
   Future<String?> getToken() async {

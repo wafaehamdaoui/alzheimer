@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:myproject/services/routine_service.dart';
 import 'package:myproject/shared/styled_text.dart';
 import 'package:myproject/models/routine_item.dart';
+import 'package:myproject/theme.dart';
 import 'confirmation_dialog.dart'; 
 
 Future<List<RoutineItem>> resetRoutineStatus() async {
@@ -31,7 +32,7 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
   final RoutineService _routineService = RoutineService();
   final List<RoutineItem> _dailyRoutine = [];
   final TextEditingController _titleController = TextEditingController();
-  String _selectedCategory = 'Medicine'; // Default category
+  String _selectedCategory = 'medicine'; // Default category
   TimeOfDay _selectedTime = TimeOfDay.now();
   final Logger _logger = Logger();
 
@@ -40,6 +41,7 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
     super.initState();
     _loadRoutinesFromBackend(); 
     _scheduleMinuteReset();
+    _selectedCategory = 'medicine';
   }
 
   // Fetch routines from the backend
@@ -100,9 +102,7 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
                 const SnackBar(content: Text('Routine deleted by success!'), backgroundColor: Colors.white),
               );
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$e')),
-              );
+              _logger.e('$e');
             }
           },
         );
@@ -171,10 +171,23 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
             children: [
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(hintText: 'Enter item title'),
+                decoration:InputDecoration(labelText: 'Routine title',
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppTheme.primaryColor),
+                  ),
+                ),
+                
               ),
               DropdownButton<String>(
                 value: _selectedCategory,
+                underline: SizedBox(), // Remove underline
+                hint: const Text(
+                  'Select a Category',
+                  style: TextStyle(color: Colors.grey),
+                ),
                 items: const [
                   DropdownMenuItem(value: 'medicine', child: Text('Medicine')),
                   DropdownMenuItem(value: 'exercise', child: Text('Exercise')),
@@ -182,12 +195,19 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
                 ],
                 onChanged: (value) {
                   setState(() {
-                    _selectedCategory = value!;
+                    _selectedCategory = value!; 
                   });
                 },
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black87,
+                ),
+                dropdownColor: Colors.white, // Background color of dropdown
+                iconEnabledColor: Colors.purple, // Dropdown icon color
+                iconSize: 24.0,
               ),
               const SizedBox(height: 10),
-              Text("Selected Time: $_selectedTime"),
+              Text("Selected Time: ${_selectedTime.hour}:${_selectedTime.minute}"),
               TextButton(
                 onPressed: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
@@ -204,6 +224,12 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
                   }
                 },
                 child: const Text('Choose Time'),
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                ),
               ),
             ],
           ),

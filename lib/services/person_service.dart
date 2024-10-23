@@ -5,7 +5,7 @@ import '../models/person.dart';
 import '../models/api_response.dart';  // Assuming you have an API response model to handle response status and errors
 
 class PersonService {
-  static const String _baseUrl = 'http://192.168.1.103:8080/api/people'; 
+  static const String _baseUrl = 'https://alzheimerbackend.onrender.com/api/people'; 
   
   // Retrieve the token from SharedPreferences
   Future<String?> getToken() async {

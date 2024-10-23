@@ -5,7 +5,7 @@ import 'package:myproject/models/appointement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppointmentService {
-  final String baseUrl = 'http://192.168.1.103:8080/api/appointments'; 
+  final String baseUrl = 'https://alzheimerbackend.onrender.com/api/appointments'; 
   final Logger _logger = Logger();
 
   Future<String?> getToken() async {

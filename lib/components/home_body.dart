@@ -40,9 +40,7 @@ class _HomeBodyState extends State<HomeBody> {
       });
       _logger.i('appointments: ${_appointments[0].description}');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e')),
-      );
+      
       _logger.e('Error fetching appointments: $e');
     }
   }
