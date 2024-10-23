@@ -31,7 +31,7 @@ class _SignInState extends State<SignIn> {
       if (response != null) {
         // Navigate to home after successful login
         Navigator.pushReplacementNamed(context, '/home');
-        Navigator.pop(context);
+        //Navigator.pop(context);
       } else {
         // Show error if login failed
         ScaffoldMessenger.of(context).showSnackBar(

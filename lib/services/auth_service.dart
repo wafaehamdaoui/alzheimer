@@ -218,7 +218,7 @@ class AuthService {
       if (response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
         User userRespone = User.fromJson(jsonResponse);
-
+        _logger.i('added user: ${response.body}');
         return userRespone;
       } else {
         _logger.e('Add failed: ${response.body}');
