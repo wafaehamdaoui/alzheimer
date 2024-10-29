@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:myproject/models/authentication_response.dart';
 import 'package:myproject/models/register_request.dart';
 import 'package:myproject/models/user.dart';
 import 'package:myproject/services/auth_service.dart';
@@ -27,9 +26,8 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _dobController = TextEditingController();  // Date of Birth controller
   final AuthService _authService = AuthService();
   bool _isButtonEnabled = false;
-  File? _image; // Store selected image
-  final ImagePicker _picker = ImagePicker(); // Image picker instance
-
+  File? _image; 
+  final ImagePicker _picker = ImagePicker(); 
   // Method to pick image
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);

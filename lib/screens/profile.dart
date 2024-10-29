@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:myproject/screens/edit_profile.dart';
@@ -26,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserInfo() async {
     User? user = await _authService.getUser(); // Fetch user info
     setState(() {
-      _user = user; // Set the user object in state
+      _user = user; 
     });
   }
 
@@ -47,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Profile Picture
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage(_user!.profilePhotoUrl), // Use NetworkImage for remote images
+                    backgroundImage: FileImage(File(_user!.profilePhotoUrl)) as ImageProvider
                   ),
                   const SizedBox(height: 16),
 
@@ -152,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // Prevent closing by tapping outside
+      barrierDismissible: false, 
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('reset_password'.tr()),
@@ -161,9 +163,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: <Widget>[
                 TextField(
                   controller: newPasswordController,
-                  obscureText: true, // Hide the password
+                  obscureText: true, 
                   decoration: InputDecoration(
-                    labelText: 'new_password'.tr(), // 'New Password'
+                    labelText: 'new_password'.tr(), 
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -171,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: confirmPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'confirm_password'.tr(), // 'Confirm Password'
+                    labelText: 'confirm_password'.tr(), 
                   ),
                 ),
               ],
