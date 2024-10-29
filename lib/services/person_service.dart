@@ -12,14 +12,20 @@ class PersonService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token'); // Retrieve the token
   }
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
 
   // Fetch all people
   Future<List<Person>> getAllPeople() async {
     final token = await getToken();
+    final userId = await  getUserID();
     final response = await http.get(Uri.parse(_baseUrl),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
+          'UserId': '$userId',
         },
     );
 

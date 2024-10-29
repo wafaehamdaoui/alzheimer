@@ -1,8 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class LanguageSelectionScreen extends StatelessWidget {
-  const LanguageSelectionScreen({super.key});
+class LanguageSelectionScreen extends StatefulWidget {
+  const LanguageSelectionScreen({Key? key}) : super(key: key);
+
+  @override
+  _LanguageSelectionScreenState createState() => _LanguageSelectionScreenState();
+}
+
+class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
+  late Locale _selectedLocale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectedLocale = context.locale; 
+  }
+
+  void _changeLanguage(Locale locale) {
+    setState(() {
+      _selectedLocale = locale;
+    });
+    context.setLocale(locale);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,25 +33,26 @@ class LanguageSelectionScreen extends StatelessWidget {
       body: Column(
         children: [
           ListTile(
+            leading: Radio<Locale>(
+              value: const Locale('en'),
+              groupValue: _selectedLocale,
+              onChanged: (Locale? value) {
+                if (value != null) _changeLanguage(value);
+              },
+            ),
             title: const Text('English'),
-            onTap: () {
-              context.setLocale(const Locale('en'));
-              Navigator.pop(context);
-            },
+            onTap: () => _changeLanguage(const Locale('en')),
           ),
           ListTile(
-            title: const Text('Français'),
-            onTap: () {
-              context.setLocale(const Locale('fr'));
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
+            leading: Radio<Locale>(
+              value: const Locale('ar'),
+              groupValue: _selectedLocale,
+              onChanged: (Locale? value) {
+                if (value != null) _changeLanguage(value);
+              },
+            ),
             title: const Text('العربية'),
-            onTap: () {
-              context.setLocale(const Locale('ar'));
-              Navigator.pop(context);
-            },
+            onTap: () => _changeLanguage(const Locale('ar')),
           ),
         ],
       ),

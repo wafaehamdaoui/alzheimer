@@ -67,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // User's Age
                   Text(
-                    'Age: ${_user!.age}', // Display Age
+                    '${'age'.tr()} ${_user!.age}', // Display Age
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
@@ -82,21 +82,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // User's Likes
                   Text(
-                    'Likes: ${_user!.likes}',
+                    '${'likes'.tr()} : ${_user!.likes}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
 
                   // User's Dislikes
                   Text(
-                    'Dislikes: ${_user!.dislikes}',
+                    '${'dislikes'.tr()} : ${_user!.dislikes}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
 
                   // User's Allergies
                   Text(
-                    'Allergies: ${_user!.allergies}',
+                    '${'allergies'.tr()}: ${_user!.allergies}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 32),
@@ -188,9 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 // Check if passwords match
                 if (newPasswordController.text == confirmPasswordController.text) {
-                  // Perform the password reset logic here (e.g., call an API)
                   if (await AuthService().resetPassword(confirmPasswordController.text) != null) {
-                    // Pass the updated user back when popping
                     Navigator.pop(context);
                   }
                   Navigator.of(context).pop(); // Close dialog after saving

@@ -13,15 +13,21 @@ class RoutineService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token'); 
   } 
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
 
   // Fetch all routines
   Future<List<RoutineItem>> getAllRoutines() async {
     final token = await getToken();
+    final userId = await  getUserID();
     final response = await http.get(
       Uri.parse(baseUrl),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'UserId': '$userId',
       },
     );
     if (response.statusCode == 200) {

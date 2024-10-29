@@ -130,7 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Full Name Field
               TextFormField(
                 controller: _fullNameController,
-                decoration: InputDecoration(labelText: 'full_name'.tr()),
+                decoration: InputDecoration(labelText: 'name'.tr()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'please_enter_your_full_name';

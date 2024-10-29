@@ -1,9 +1,14 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myproject/models/task.dart';
+import 'package:myproject/screens/task_details.dart';
+import 'package:myproject/services/notification_service.dart';
 import 'package:myproject/services/task_service.dart';
 import 'package:myproject/shared/styled_text.dart';
+import 'package:myproject/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -15,6 +20,7 @@ class TasksScreen extends StatefulWidget {
 class _TasksScreenState extends State<TasksScreen> {
   final TaskService _taskService = TaskService();
   final TextEditingController _taskController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   List<Task> _tasks = [];
   bool _isLoading = true;
@@ -37,35 +43,45 @@ class _TasksScreenState extends State<TasksScreen> {
         _isLoading = false;
       });
     } catch (e, stackTrace) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (this.mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       _logger.e('Error fetching tasks: $e', e, stackTrace); 
     }
   }
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
 
   void _addTask() async {
     final String taskTitle = _taskController.text;
+    final String taskDescription = _descriptionController.text;
+    final userId = await getUserID();
     if (taskTitle.isNotEmpty) {
-      Task newTask = Task(title: taskTitle, date: _selectedDate, isDone: false, id: null);
+      Task newTask = Task(title: taskTitle,description: taskDescription, date: _selectedDate, isDone: false, id: null, userId: userId);
       try {
         Task createdTask = await _taskService.addTask(newTask);
         setState(() {
           _tasks.add(createdTask);
           _taskController.clear();  
-          _selectedDate = DateTime.now();  // Reset the date selection
+          _descriptionController.clear();  
+          _selectedDate = DateTime.now();  
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: StyledSuccessText('Task added successfuly!'), backgroundColor: Colors.white),
+          SnackBar(content: StyledSuccessText('item_added_successfuly'.tr()), backgroundColor: Colors.white),
         );
+        scheduleTaskReminder(taskTitle,_selectedDate);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: StyledErrorText('Action failed!'), backgroundColor: Colors.white),
+          SnackBar(content: StyledErrorText('Action_failed'.tr()), backgroundColor: Colors.white),
         );
         _logger.e('Error adding task: $e'); 
       }
     }
-    Navigator.of(context).pop();  // Close the dialog
+    Navigator.of(context).pop();  
   }
 
 
@@ -76,14 +92,14 @@ class _TasksScreenState extends State<TasksScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm'),
-          content: const Text('Did you actually complete this task?'),
+          title: Text('confirm'.tr(),style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold)),
+          content: Text('complete_task'.tr()),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: Text('cancel'.tr()),
             ),
             TextButton(
               onPressed: () async {
@@ -97,7 +113,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   // Handle error (e.g., show a message)
                 }
               },
-              child: const Text('Yes'),
+              child: Text('confirm'.tr()),
             ),
           ],
         );
@@ -110,14 +126,14 @@ class _TasksScreenState extends State<TasksScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm'),
-          content: const Text('Are you sure you want to delete this task?'),
+          title: Text('confirm'.tr(),style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold)),
+          content: Text('confirm_delete_task'.tr()),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
               },
-              child: const Text('Cancel'),
+              child: Text('cancel'.tr()),
             ),
             TextButton(
               onPressed: () async {
@@ -126,18 +142,18 @@ class _TasksScreenState extends State<TasksScreen> {
                   setState(() {
                     _tasks.removeAt(index);
                   });
-                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: StyledSuccessText('Task deleted successfuly!'), backgroundColor: Colors.white),
+                    SnackBar(content: StyledSuccessText('Task_deleted_successfuly'.tr()), backgroundColor: Colors.white),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: StyledErrorText('Action failed!'), backgroundColor: Colors.white),
+                    SnackBar(content: StyledErrorText('Action_failed'.tr()), backgroundColor: Colors.white),
                   );
                   _logger.e('Error: $e'); 
                 }
               },
-              child: const Text('Yes'),
+              child: Text('confirm'.tr()),
             ),
           ],
         );
@@ -150,7 +166,7 @@ class _TasksScreenState extends State<TasksScreen> {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _tasks[index].date,
-      firstDate: DateTime.now(),
+      firstDate: DateTime(2024),
       lastDate: DateTime(2101),
     );
 
@@ -161,11 +177,11 @@ class _TasksScreenState extends State<TasksScreen> {
           _tasks[index] = updatedTask;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: StyledSuccessText('Date Updated Successfuly!'), backgroundColor: Colors.white),
+          SnackBar(content: StyledSuccessText('Date_Updated_Successfuly'.tr()), backgroundColor: Colors.white),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: StyledErrorText('Action failed!'), backgroundColor: Colors.white),
+          SnackBar(content: StyledErrorText('Action_failed'.tr()), backgroundColor: Colors.white),
         );
         _logger.e('Error : $e'); 
       }
@@ -175,79 +191,130 @@ class _TasksScreenState extends State<TasksScreen> {
  void _showAddTaskDialog() {
   showDialog(
     context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text(
-          'Add New Task',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        content: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _taskController,
-                decoration: InputDecoration(
-                  labelText: 'Task title',
-                  border: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                  ),
-                  contentPadding: const EdgeInsets.all(10),
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                "Selected Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
-                style: TextStyle(fontSize: 16),
-              ),
-              TextButton(
-                onPressed: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2101),
-                  );
-                  if (pickedDate != null && pickedDate != _selectedDate) {
-                    setState(() {
-                      _selectedDate = pickedDate;
-                    });
-                  }
-                },
-                child: const Text('Choose Date'),
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: _addTask,
-            child: const Text('Add'),
-            style: ElevatedButton.styleFrom(// Set text color
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              'Add_New_Task',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppTheme.textColor),
             ),
           ),
-        ],
-      );
-    },
-  );
-}
+          content: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _taskController,
+                  decoration: InputDecoration(
+                    labelText: 'title'.tr(),
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                    contentPadding: const EdgeInsets.all(10),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description'.tr(),
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                    contentPadding: const EdgeInsets.all(10),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  "${'Selected_Date'.tr()}: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2101),
+                    );
+                    if (pickedDate != null && pickedDate != _selectedDate) {
+                      setState(() {
+                        _selectedDate = pickedDate;
+                      });
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                  ),
+                  child: Text('Choose_Date'.tr()),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: _addTask,
+              style: ElevatedButton.styleFrom(// Set text color
+              ),
+              child: Text('add'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void scheduleTaskReminder(String title, DateTime dateTime) {
+    var args = {'title': title};
+    
+    AndroidAlarmManager.oneShotAt(
+      DateTime(
+          dateTime.year,
+          dateTime.month,
+          dateTime.day,
+          08,
+          00,),
+      100, 
+      _alarmCallback,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+      allowWhileIdle: true,
+      params: args
+    ).then((_) {
+      _logger.d('Alarm scheduled for task: $title at $dateTime');
+    }).catchError((error) {
+      _logger.e('Failed to schedule alarm: $error');
+    });
+  }
 
+  static Future<void> _alarmCallback(int id, Map<String, dynamic> args) async {
+    final title = args['title'];
+    final notificationService = NotificationService();
+    notificationService.showNotification(
+      111, 
+      'You_have_Task_today'.tr(),
+       title
+    );
+    Logger().d('Notification triggered');
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,7 +325,7 @@ class _TasksScreenState extends State<TasksScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _tasks.isEmpty
-              ? const Center(child: Text('No entries yet.'))
+              ? Center(child: Text('No_Entries'.tr()))
               : ListView.builder(
                   itemCount: _tasks.length,
                   itemBuilder: (context, index) {
@@ -279,11 +346,21 @@ class _TasksScreenState extends State<TasksScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, size: 15),
-                              onPressed: () => _editTaskDate(index), // Edit date
+                              icon: const Icon(Icons.edit_calendar, size: 16),
+                              onPressed: () => _editTaskDate(index), 
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, size: 15),
+                              icon: const Icon(Icons.open_in_new, size: 16),
+                              onPressed: () => {
+                                Navigator.push(context,
+                                  MaterialPageRoute(
+                                    builder: (context) => TaskDetailsPage(task: task),
+                                  ),
+                                )
+                              }, 
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 18),
                               onPressed: () => _deleteTask(index),
                             ),
                           ],
@@ -295,7 +372,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddTaskDialog,
-        tooltip: 'Add Task',
+        tooltip: 'Add_Task',
         child: const Icon(Icons.add),
       ),
     );

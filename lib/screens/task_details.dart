@@ -1,29 +1,29 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:myproject/models/appointement.dart';
-import 'package:myproject/services/appointment_service.dart';
+import 'package:myproject/models/task.dart';
+import 'package:myproject/services/task_service.dart';
 import 'package:myproject/shared/styled_text.dart';
 import 'package:myproject/theme.dart';
 
-class EventDetailsPage extends StatefulWidget {
-  final Appointment appointment;
+class TaskDetailsPage extends StatefulWidget {
+  final Task task;
 
-  const EventDetailsPage({required this.appointment});
+  const TaskDetailsPage({required this.task});
 
   @override
-  State<EventDetailsPage> createState() => _EventDetailsPageState();
+  State<TaskDetailsPage> createState() => _TaskDetailsPageState();
 }
 
-class _EventDetailsPageState extends State<EventDetailsPage> {
+class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
-  final AppointmentService _appointmentService = AppointmentService();
+  final TaskService taskService = TaskService();
 
    
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: StyledTitle(widget.appointment.title),
+        title: StyledTitle(widget.task.title),
         // actions: [
         //   IconButton(onPressed: ()=> deleteAppointment(widget.appointment), 
         //     icon: Icon(Icons.delete, color:  AppTheme.textColor,)
@@ -41,16 +41,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 const Icon(Icons.calendar_month, color:  Color.fromARGB(255, 194, 33, 243)),
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: Text(widget.appointment.date.toIso8601String().split('T').first, style: const TextStyle(fontSize: 22)),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                const Icon(Icons.access_time, color:  Color.fromARGB(255, 194, 33, 243)),
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Text('${widget.appointment.time.hour}: ${widget.appointment.time.minute}', style: const TextStyle(fontSize: 22)),
+                  child: Text(widget.task.date.toIso8601String().split('T').first, style: const TextStyle(fontSize: 22)),
                 ),
               ],
             ),
@@ -64,7 +55,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 40, right: 10),
                 child: Text(
-                  widget.appointment.description,
+                  widget.task.description,
                   style: const TextStyle(fontSize: 21),
                   softWrap: true, 
                 ),

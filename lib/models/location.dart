@@ -3,8 +3,14 @@ class Location {
   final String title;
   final String coordinates;
   final String imagePath;
+  final int userId;
 
-  Location({required this.id, required this.title, required this.coordinates, required this.imagePath});
+  Location({
+    required this.id, 
+    required this.title, 
+    required this.coordinates, 
+    required this.imagePath,
+    required this.userId,});
 
   // toJson method
   Map<String, dynamic> toJson() {
@@ -13,6 +19,7 @@ class Location {
       'title': title,
       'coordinates': coordinates,
       'imagePath': imagePath,
+      'userId': userId,
     };
   }
 
@@ -23,6 +30,7 @@ class Location {
       title: json['title'],
       coordinates: json['coordinates'],
       imagePath: json['imagePath'],
+      userId: json['userId'] as int,
     );
   }
 }

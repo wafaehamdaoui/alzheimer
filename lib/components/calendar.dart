@@ -1,11 +1,14 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myproject/models/appointement.dart';
 import 'package:myproject/screens/event_details.dart';
 import 'package:myproject/services/appointment_service.dart';
+import 'package:myproject/services/notification_service.dart';
 import 'package:myproject/shared/styled_text.dart';
 import 'package:myproject/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarWidget extends StatefulWidget {
@@ -41,11 +44,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           _addAppointmentToDay(appointment.date, appointment);
         }
       });
-    } catch (error) {
-      _logger.e('Error fetching appointments: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching appointments: ${error.toString()}')),
-      );
+    } catch (e, stackTrace) {
+      _logger.e('Error fetching tasks: $e', e, stackTrace); 
     }
   }
 
@@ -130,7 +130,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               Expanded(
                 child: _buildAppointmentList(),
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 40.0),
             ],
           ),
           Positioned(
@@ -155,120 +155,134 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   showDialog(
     context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Center(child: Text('Add Appointment')),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: dateController,
-                decoration: InputDecoration(
-                  labelText: 'Date (yyyy-mm-dd)',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) {
-                        dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
-                      }
-                    },
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Center(child: Text('add_appointment'.tr(), style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold))),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(labelText: 'title'.tr()),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(labelText: 'Description'.tr()),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: dateController,
+                  decoration: InputDecoration(
+                    labelText: 'Date'.tr(),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) {
+                          dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: timeController,
-                decoration: InputDecoration(
-                  labelText: 'Time (HH:mm)',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.access_time),
-                    onPressed: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        timeController.text = pickedTime.format(context).split(' ')[0];
-                      }
-                    },
+                const SizedBox(height: 16),
+                TextField(
+                  controller: timeController,
+                  decoration: InputDecoration(
+                    labelText: 'Time'.tr(),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.access_time),
+                      onPressed: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          // Format time in 24-hour format and update the TextField
+                          final hour = pickedTime.hour.toString().padLeft(2, '0');
+                          final minute = pickedTime.minute.toString().padLeft(2, '0');
+                          timeController.text = '$hour:$minute';
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                // Validate date input
-                if (dateController.text.isEmpty) {
-                  throw FormatException("Date cannot be empty");
+          actions: [
+            TextButton(
+              onPressed: () async {
+                try {
+                  // Validate date input
+                  if (dateController.text.isEmpty) {
+                    throw FormatException("Date cannot be empty");
+                  }
+                  
+                  DateTime appointmentDate = DateTime.parse(dateController.text);
+
+                  // Validate time input
+                  if (timeController.text.isEmpty) {
+                    throw FormatException("Time cannot be empty");
+                  }
+
+                  List<String> timeParts = timeController.text.split(':');
+
+                  // Ensure the time has both hour and minute parts
+                  if (timeParts.length != 2) {
+                    throw FormatException("Invalid time format. Please use HH:mm.");
+                  }
+
+                  int hour = int.parse(timeParts[0]);
+                  int minute = int.parse(timeParts[1]);
+
+                  // Create a new appointment
+                  final userId = await getUserID();
+                  final newAppointment = Appointment(
+                    id: null,
+                    title: titleController.text,
+                    description: descriptionController.text,
+                    date: appointmentDate,
+                    time: TimeOfDay(hour: hour, minute: minute),
+                    userId: userId
+                  );
+
+                  await _appointmentService.addAppointment(newAppointment);
+                  _addAppointmentToDay(appointmentDate, newAppointment);
+                  scheduleAppointmentReminder(newAppointment.title, newAppointment.date, TimeOfDay(hour: hour, minute: minute));
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$e')),
+                  );
+                  _logger.w(e);
                 }
-                
-                DateTime appointmentDate = DateTime.parse(dateController.text);
+              },
 
-                // Validate time input
-                if (timeController.text.isEmpty) {
-                  throw FormatException("Time cannot be empty");
-                }
-
-                List<String> timeParts = timeController.text.split(':');
-
-                // Ensure the time has both hour and minute parts
-                if (timeParts.length != 2) {
-                  throw FormatException("Invalid time format. Please use HH:mm.");
-                }
-
-                int hour = int.parse(timeParts[0]);
-                int minute = int.parse(timeParts[1]);
-
-                // Create a new appointment
-                final newAppointment = Appointment(
-                  id: null,
-                  title: titleController.text,
-                  description: descriptionController.text,
-                  date: appointmentDate,
-                  time: TimeOfDay(hour: hour, minute: minute),
-                );
-
-                await _appointmentService.addAppointment(newAppointment);
-                _addAppointmentToDay(appointmentDate, newAppointment);
-
+              child: Text('add'.tr()),
+            ),
+            TextButton(
+              onPressed:(){
                 Navigator.of(context).pop();
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$e')),
-                );
-                _logger.w(e);
-              }
-            },
+              } , 
+              child: Text('cancel'.tr()),)
+          ],
+        );
+      },
+    );
+  }
 
-            child: Text('Add'.tr()),
-          ),
-        ],
-      );
-    },
-  );
-}
-
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
   
   Future<void> _addAppointmentToDay(DateTime day, Appointment appointment) async {
     final localDate = DateTime.utc(day.year, day.month, day.day);
@@ -292,6 +306,48 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     setState(() {
       _selectedAppointments = _getAppointmentsForDay(day);
     });
+  }
+
+  Future<int> getDuration() async {
+    final prefs = await SharedPreferences.getInstance();
+    return int.parse((prefs.getString('notification_duration') ?? '1').split(' ').first);
+  }
+
+  void scheduleAppointmentReminder(String title, DateTime date, TimeOfDay time) async{
+    DateTime scheduledTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    int duration = await getDuration();
+    if (scheduledTime.isBefore(DateTime.now())) {
+      _logger.e('The reminder time is in the past. Skipping alarm scheduling: $scheduledTime, now: ${DateTime.now()}');
+      return; // Skip scheduling if time is in the past
+    }
+
+    var args = {'title': title, 'time': "${time.hour}:${time.minute}"};
+    AndroidAlarmManager.oneShotAt(
+      scheduledTime.subtract(Duration(minutes: duration)),
+      101,
+      _alarmCallback,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+      allowWhileIdle: true,
+      params: args,
+    ).then((_) {
+      _logger.d('Alarm scheduled for appointment: $title at $scheduledTime');
+    }).catchError((error) {
+      _logger.e('Failed to schedule alarm: $error');
+    });
+  }
+
+  static Future<void> _alarmCallback(int id, Map<String, dynamic> args) async {
+    final title = args['title'];
+    final time = args['time'];
+    final notificationService = NotificationService();
+    notificationService.showNotification(
+      110, 
+      '${'appointment_notif'.tr()} $time',
+       title
+    );
+    Logger().d('Notification triggered');
   }
 
   Widget _buildAppointmentList() {
@@ -339,7 +395,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       ),
                     );
                   },
-                  child: const Icon(Icons.article, size: 20),
+                  child: const Icon(Icons.open_in_new, size: 20),
                 ),
                 TextButton(
                   onPressed: () => deleteAppointment(appointment),
@@ -357,14 +413,14 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm'),
-          content: const Text('Are you sure you want to delete this appointment?'),
+          title: Text('confirm'.tr(), style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold)),
+          content: Text('confirm_delete_appointment'.tr()),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); 
               },
-              child: const Text('Cancel'),
+              child: Text('cancel'.tr()),
             ),
             TextButton(
               onPressed: () async {
@@ -373,15 +429,15 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                   _removeAppointmentToDay(appointment.date, appointment);
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: StyledSuccessText('Appointment deleted successfuly!'), backgroundColor: Colors.white),
+                    SnackBar(content: StyledSuccessText('Appointment_deleted_successfuly'.tr()), backgroundColor: Colors.white),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: StyledErrorText('Action failed!'), backgroundColor: Colors.white),
+                    SnackBar(content: StyledErrorText('Action_failed'.tr()), backgroundColor: Colors.white),
                   );
                 }
               },
-              child: const Text('Yes'),
+              child: Text('confirm'.tr()),
             ),
           ],
         );

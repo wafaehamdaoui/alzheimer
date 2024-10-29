@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 class Appointment {
@@ -8,6 +6,7 @@ class Appointment {
   final String description;
   final DateTime date;
   final TimeOfDay time; 
+  final int userId;
 
   Appointment({
     required this.id,
@@ -15,6 +14,7 @@ class Appointment {
     required this.description,
     required this.date,
     required this.time,
+    required this.userId,
   });
 
   // Factory method to create an AppointmentResponse object from JSON
@@ -31,7 +31,8 @@ class Appointment {
       time:  TimeOfDay(
         hour:json['time'][0], 
         minute:json['time'][1], 
-      )
+      ),
+      userId: json['userId'] as int,
     );
   }
 
@@ -42,6 +43,7 @@ class Appointment {
       'description': description,
       'date': date.toIso8601String(), 
       'time': [time.hour, time.minute],
+      'userId': userId,
     };
   }
 }

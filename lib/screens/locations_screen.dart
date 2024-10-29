@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
+import 'package:myproject/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:myproject/models/location.dart'; // Import your Location model
-import 'package:myproject/services/location_service.dart'; // Import LocationService
+import 'package:myproject/services/location_service.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import LocationService
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -19,11 +22,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
   final ImagePicker _picker = ImagePicker();
   final LocationService _locationService = LocationService(); 
   final Logger _logger = Logger();
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchLocations(); // Fetch locations on screen load
+    _fetchLocations(); 
   }
 
   // Fetch locations from the service
@@ -32,10 +36,18 @@ class _LocationsScreenState extends State<LocationsScreen> {
       List<Location> locations = await _locationService.getAllLocations();
       setState(() {
         _locations.addAll(locations);
+        _isLoading = false;
       });
       _logger.i("Location : ${_locations.first.id}");
-    } catch (e) {
-      print('Error fetching locations: $e'); // Handle error
+    } catch (e, stackTrace) {
+      if (this.mounted) {
+        setState(() {
+          setState(() {
+            _isLoading = false;
+          });
+        });
+      }
+      _logger.e('Error fetching tasks: $e', e, stackTrace);
     }
   }
 
@@ -49,9 +61,14 @@ class _LocationsScreenState extends State<LocationsScreen> {
       final String savedPath = '${appDir.path}/$fileName';
       final File localFile = await File(pickedFile.path).copy(savedPath);
 
-      _showAddLocationDialog(localFile.path); // Pass the image path to the dialog
+      _showAddLocationDialog(localFile.path); 
     }
   }
+
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
 
   // Method to show dialog for adding a new location
   void _showAddLocationDialog(String imagePath) {
@@ -62,23 +79,23 @@ class _LocationsScreenState extends State<LocationsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add New Location'),
+          title: Text('Add_New_Location'.tr(),style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Place Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Place_Name'.tr(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: coordinatesController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Address'.tr(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -86,29 +103,31 @@ class _LocationsScreenState extends State<LocationsScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); 
               },
-              child: Text('Cancel'),
+              child: Text('cancel'.tr()),
             ),
             TextButton(
               onPressed: () async {
                 // Create a new Location object
+                final userId = await getUserID();
                 final newLocation = Location(
                   id: null,
                   title: titleController.text,
                   coordinates: coordinatesController.text,
                   imagePath: imagePath,
+                  userId: userId
                 );
 
                 // Add the new location using the service
                 await _locationService.addLocation(newLocation);
                 setState(() {
-                  _locations.add(newLocation); // Update local state
+                  _locations.add(newLocation); 
                 });
                 
-                Navigator.of(context).pop(); // Close dialog after adding entry
+                Navigator.of(context).pop(); 
               },
-              child: Text('Add'),
+              child: Text('add'.tr()),
             ),
           ],
         );
@@ -118,9 +137,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
 
   // Method to delete a location
   Future<void> _deleteLocation(Location location) async {
-    await _locationService.deleteLocation(location.id??0); // Delete using the service
+    await _locationService.deleteLocation(location.id??0); 
     setState(() {
-      _locations.remove(location); // Update local state
+      _locations.remove(location); 
     });
   }
 
@@ -128,10 +147,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Important Locations'),
+        title: Text('Important_Locations'.tr()),
       ),
-      body: _locations.isEmpty?
-      const Center(child: Text('No Entries Yet!'),)
+      body:  _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          :_locations.isEmpty?
+        Center(child: Text('No_Entries'.tr()),)
       :ListView(
         padding: const EdgeInsets.all(10),
         children: _locations.map((location) {
@@ -141,8 +162,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
-          onPressed: _pickAndSaveImage, // Open image picker
-          child: const Text('Add New Location'),
+          onPressed: _pickAndSaveImage, 
+          child: Text('Add_New_Location'.tr()),
         ),
       ),
     );
@@ -165,7 +186,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
       subtitle: Text(location.coordinates),
       trailing: IconButton(
         icon: const Icon(Icons.delete),
-        onPressed: () => _showDeleteConfirmationDialog(location), // Show confirmation dialog
+        onPressed: () => _showDeleteConfirmationDialog(location), 
       ),
     ),
   );
@@ -177,21 +198,21 @@ void _showDeleteConfirmationDialog(Location location) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete "${location.title}"?'),
+        title: Text('confirm'.tr(),style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold)),
+        content: Text('${'Are_you_sure'} ${location.title}?'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
+              Navigator.of(context).pop(); 
             },
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
-              await _deleteLocation(location); // Call delete method
-              Navigator.of(context).pop(); // Close the dialog
+              await _deleteLocation(location); 
+              Navigator.of(context).pop(); 
             },
-            child: const Text('Delete'),
+            child: Text('Delete'.tr()),
           ),
         ],
       );

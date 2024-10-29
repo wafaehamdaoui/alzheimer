@@ -1,10 +1,12 @@
 class JournalEntry {
   String description; // Content of the journal entry
-  DateTime date;      // Date of the entry
+  DateTime date;      
+  final int userId;
 
   JournalEntry({
     required this.description,
     required this.date,
+    required this.userId,
   });
 
   // Factory method to create a JournalEntry from JSON
@@ -18,6 +20,7 @@ class JournalEntry {
         json['date'][3],//hour
         json['date'][4],//minute
       ),
+      userId: json['userId'] as int,
     );
   }
 
@@ -25,7 +28,8 @@ class JournalEntry {
   Map<String, dynamic> toJson() {
     return {
       'description': description,
-      'date': date.toIso8601String(), // Convert DateTime to ISO 8601 string
+      'date': date.toIso8601String(), 
+      'userId': userId,
     };
   }
 }

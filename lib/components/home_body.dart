@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myproject/models/appointement.dart';
@@ -48,9 +49,9 @@ class _HomeBodyState extends State<HomeBody> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(5), // Ensure there's no padding at the top
+      padding: EdgeInsets.all(5), 
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align content to start at the top
+        crossAxisAlignment: CrossAxisAlignment.start, 
         children: [
           Container(
             padding: const EdgeInsets.all(8.0),
@@ -67,13 +68,13 @@ class _HomeBodyState extends State<HomeBody> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildSummaryCard('People To Remember', () {
+                    _buildSummaryCard('people'.tr(), () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const PeopleScreen()),
                       );
                     }),
-                    _buildSummaryCard('Important Locations', () {
+                    _buildSummaryCard('locations'.tr(), () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const LocationsScreen()),
@@ -86,13 +87,13 @@ class _HomeBodyState extends State<HomeBody> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildSummaryCard('Journals', () {
+                    _buildSummaryCard('journals'.tr(), () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => JournalScreen()),
                       );
                     }),
-                    _buildSummaryCard('Trainning', () {
+                    _buildSummaryCard('trainning'.tr(), () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => MemoryGameScreen()),
@@ -103,9 +104,9 @@ class _HomeBodyState extends State<HomeBody> {
                 const SizedBox(height: 15),
 
                 // Upcoming Events Section
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: StyledSubheading('Upcoming Appointment'),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: StyledSubheading('upcoming_appointment'.tr()),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
@@ -122,14 +123,19 @@ class _HomeBodyState extends State<HomeBody> {
                 const SizedBox(height: 15),
 
                 // Announcements Section
-                const Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: StyledSubheading('Announcements'),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: StyledSubheading('helpful_advice'.tr()),
                 ),
                 const SizedBox(height: 10),
-                _buildAnnouncement('General assembly meeting scheduled next week. Please RSVP.'),
-                _buildAnnouncement('New training materials on irrigation are now available.'),
-                const SizedBox(height: 400),
+                _buildAnnouncement('adv2'.tr()),
+                _buildAnnouncement('adv5'.tr()),
+                _buildAnnouncement('adv7'.tr()),
+                _buildAnnouncement('adv3'.tr()),
+                _buildAnnouncement('adv4'.tr()),
+                _buildAnnouncement('adv1'.tr()),
+                _buildAnnouncement('adv6'.tr()),
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -154,15 +160,14 @@ class _HomeBodyState extends State<HomeBody> {
         ],
       ),
       child: TextField(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.search, color: Colors.grey),
-          hintText: 'Search tasks, location, person...',
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          hintText: 'search_text'.tr(),
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.all(15.0),
+          contentPadding: const EdgeInsets.all(15.0),
         ),
         onChanged: (value) {
-          // Implement search logic if needed
         },
       ),
     );
@@ -176,8 +181,8 @@ class _HomeBodyState extends State<HomeBody> {
         elevation: 4,
         child: Container(
           padding: const EdgeInsets.all(10.0),
-          width: 180,
-          child: Center(child: StyledText(title, style: const TextStyle(fontWeight: FontWeight.bold))),
+          width: 175,
+          child: Center(child: StyledText(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
         ),
       ),
     );
@@ -190,7 +195,7 @@ class _HomeBodyState extends State<HomeBody> {
       child: ListTile(
         leading: const Icon(Icons.access_time, color:  Color.fromARGB(255, 194, 33, 243)),
         title: StyledText(appointement.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: StyledText('${appointement.time}'),
+        subtitle: StyledText('Today - ${appointement.time.hour}:${appointement.time.minute}'),
         trailing: ElevatedButton(
           onPressed: () {
             Navigator.push(
@@ -202,7 +207,7 @@ class _HomeBodyState extends State<HomeBody> {
               ),
             );
           },
-          child: const Text('details'),
+          child: Text('Details'.tr()),
         ),
       ),
     );

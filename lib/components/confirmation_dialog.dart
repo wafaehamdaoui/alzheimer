@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:myproject/theme.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;
@@ -15,21 +17,20 @@ class ConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(title),
+      title: Text(title, style: TextStyle(color: AppTheme.primaryColor),),
       content: Text(content),
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog
+            Navigator.of(context).pop(); 
           },
-          child: const Text('Cancel'),
+          child: Text('cancel'.tr()),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog
-            onConfirm(); // Call the confirm function
+            onConfirm();
           },
-          child: const Text('Confirm'),
+          child: Text('confirm'.tr()),
         ),
       ],
     );

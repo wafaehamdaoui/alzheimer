@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:myproject/models/memory_card.dart';
 
@@ -44,7 +45,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     for (String image in images) {
       String id = UniqueKey().toString();
       tempCards.add(MemoryCard(image: image, id: id));
-      tempCards.add(MemoryCard(image: image, id: id)); // Add a pair
+      tempCards.add(MemoryCard(image: image, id: id)); 
     }
 
     // Shuffle the cards
@@ -92,7 +93,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Memory Matching Game'),
+        title: Text('Memory_Matching_Game'.tr()),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.only(top: 40,left: 5, right: 5),

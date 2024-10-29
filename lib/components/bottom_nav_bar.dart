@@ -35,19 +35,19 @@ class CustomBottomNavBar extends StatelessWidget {
         elevation: 0, // Remove BottomNavigationBar shadow
         items: <BottomNavigationBarItem>[
           _buildNavItem(
-            icon: Icons.home_outlined, // Home Icon
+            icon: Icons.home_outlined, 
             label: 'home'.tr(),
             index: 0,
             selectedIndex: selectedIndex,
           ),
           _buildNavItem(
-            icon: Icons.medical_services, // Group Members Icon
-            label: 'Daily Routine'.tr(),
+            icon: Icons.medical_services, 
+            label: 'daily_routine'.tr(),
             index: 1,
             selectedIndex: selectedIndex,
           ),
           _buildNavItem(
-            icon: Icons.fact_check_outlined, // Tasks Icon
+            icon: Icons.fact_check_outlined, 
             label: 'tasks'.tr(),
             index: 2,
             selectedIndex: selectedIndex,
@@ -73,12 +73,12 @@ class CustomBottomNavBar extends StatelessWidget {
   }) {
     return BottomNavigationBarItem(
       icon: Container(
-        padding: const EdgeInsets.all(10), // Padding around the icon
+        padding: const EdgeInsets.all(10), 
         decoration: BoxDecoration(
           color: selectedIndex == index
               ? AppTheme.primaryAccent
-              : Colors.transparent, // Background color if selected
-          borderRadius: BorderRadius.circular(30), // Rounded background for selected item
+              : Colors.transparent, 
+          borderRadius: BorderRadius.circular(30), 
         ),
         child: Icon(
           icon,
@@ -86,7 +86,7 @@ class CustomBottomNavBar extends StatelessWidget {
           color: selectedIndex == index ? Colors.white : Color.fromARGB(255, 216, 216, 216), // Change icon color based on selection
         ),
       ),
-      label: label, // Label below the icon
+      label: label, 
     );
   }
 }

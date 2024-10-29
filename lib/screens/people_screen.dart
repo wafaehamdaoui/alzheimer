@@ -2,11 +2,15 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:logger/logger.dart';
+import 'package:myproject/shared/styled_text.dart';
+import 'package:myproject/theme.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart'; 
 import 'package:path/path.dart' as path;
 import '../models/person.dart';
-import '../services/person_service.dart'; // Import PersonService
-
+import '../services/person_service.dart'; 
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({super.key});
 
@@ -16,13 +20,15 @@ class PeopleScreen extends StatefulWidget {
 
 class _PeopleScreenState extends State<PeopleScreen> {
   final List<Person> _people = [];
+  bool _isLoading = true;
+  final Logger _logger = Logger();
   final ImagePicker _picker = ImagePicker();
-  final PersonService _personService = PersonService(); // Initialize PersonService
+  final PersonService _personService = PersonService(); 
 
   @override
   void initState() {
     super.initState();
-    _fetchPeople(); // Fetch people on screen load
+    _fetchPeople(); 
   }
 
   // Fetch people from the backend
@@ -31,29 +37,48 @@ class _PeopleScreenState extends State<PeopleScreen> {
       List<Person> people = await _personService.getAllPeople();
       setState(() {
         _people.addAll(people);
+        _isLoading = false;
       });
-    } catch (e) {
-      // Handle error
-      print('Error fetching people: $e');
+    } catch (e, stackTrace) {
+      if (this.mounted) {
+        setState(() {
+          setState(() {
+            _isLoading = false;
+          });
+        });
+      }
+      _logger.e('Error fetching tasks: $e', e, stackTrace);
     }
   }
 
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
+
   // Method to add a new person to the backend
-  Future<void> _addPerson(String name, String relation, String imagePath) async {
+  Future<void> _addPerson(String name, String relation, String phone, String imagePath) async {
+    final userId = await getUserID();
     final person = Person(
       name: name,
       relation: relation,
-      imagePath: imagePath, // Assuming `profilePhotoUrl` is the field for imagePath in Person model
+      phone: phone,
+      imagePath: imagePath, 
+      userId: userId
     );
 
     try {
-      await _personService.addPerson(person); // Add to backend
+      await _personService.addPerson(person); 
       setState(() {
-        _people.add(person); // Add to the list locally after backend call succeeds
+        _people.add(person); 
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: StyledSuccessText('Person_added_successfully'.tr()), backgroundColor: Colors.white),
+        );
     } catch (e) {
-      // Handle error
-      print('Error adding person: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: StyledErrorText('Action_failed'.tr()), backgroundColor: Colors.white),
+        );
     }
   }
 
@@ -67,7 +92,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
       final String savedPath = '${appDir.path}/$fileName';
       final File localFile = await File(pickedFile.path).copy(savedPath);
 
-      _showAddPersonDialog(localFile.path); // Pass the image path to the dialog
+      _showAddPersonDialog(localFile.path); 
     }
   }
 
@@ -75,25 +100,32 @@ class _PeopleScreenState extends State<PeopleScreen> {
   void _showAddPersonDialog(String imagePath) {
     String name = '';
     String relation = '';
+    String phone = '';
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add new person'),
+          title: Center(child: Text('Add_New_Person'.tr(),style: TextStyle(fontSize: 18, color: AppTheme.textColor, fontWeight: FontWeight.bold))),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration:  InputDecoration(labelText: 'Name'.tr()),
                 onChanged: (value) {
                   name = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Relationship'),
+                decoration:  InputDecoration(labelText: 'Relationship'.tr()),
                 onChanged: (value) {
                   relation = value;
+                },
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Phone_Number'.tr()),
+                onChanged: (value) {
+                  phone = value;
                 },
               ),
             ],
@@ -101,8 +133,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                if (name.isNotEmpty && relation.isNotEmpty) {
-                  _addPerson(name, relation, imagePath); 
+                if (name.isNotEmpty && relation.isNotEmpty && phone.isNotEmpty) {
+                  _addPerson(name, relation,phone, imagePath); 
                 }
                 Navigator.of(context).pop();
               },
@@ -124,9 +156,11 @@ class _PeopleScreenState extends State<PeopleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('People To Remember'),
+        title: Text('People_To_Remember'.tr()),
       ),
-      body: _people.isEmpty? const Center(child: Text('No entries yet.'))
+      body:  _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          :_people.isEmpty? Center(child: Text('No_Entries'.tr()))
       :ListView(
         padding: const EdgeInsets.all(10),
         children: [
@@ -137,8 +171,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
-          onPressed: _pickAndSaveImage, // Pick image from the gallery
-          child: const Text('Add New Person'),
+          onPressed: _pickAndSaveImage, 
+          child: Text('Add_New_Person'.tr()),
         ),
       ),
     );
@@ -157,11 +191,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
         subtitle: Text(person.relation),
         trailing: IconButton(
           icon: const Icon(Icons.phone),
-          onPressed: () {
-            // Action for the phone button
+          onPressed: () async {
+            final Uri phoneUri = Uri(scheme: 'tel', path: person.phone);
+            if (!await launchUrl(phoneUri)) {
+              throw 'Could not launch $phoneUri';
+            }
           },
         ),
       ),
     );
   }
+
 }

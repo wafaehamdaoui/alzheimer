@@ -27,6 +27,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', authResponse.token);
       await prefs.setString('user_info', jsonEncode(authResponse.user.toJson()));
+      await prefs.setInt('user_id', authResponse.user.id??0);
   
       return authResponse;
     } else {

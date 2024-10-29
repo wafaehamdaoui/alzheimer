@@ -6,13 +6,15 @@ class RoutineItem {
   final String category; // The category (e.g., 'medicine', 'exercise', 'task')
   final TimeOfDay time;  // The time for the routine item
   bool isDone;
+  final int userId;
 
   RoutineItem({
     required this.id,
     required this.title,
     required this.category,
     required this.time,
-    required this.isDone
+    required this.isDone,
+    required this.userId,
   });
 
   // Convert a RoutineItem object into a Map (toJson)
@@ -23,6 +25,7 @@ class RoutineItem {
       'category': category,
       'time': [time.hour, time.minute],
       'isDone': isDone,
+      'userId': userId,
     };
   }
 
@@ -37,6 +40,7 @@ class RoutineItem {
         minute:json['time'][1], 
       ),
       isDone: json['done'] ,
+      userId: json['userId'] as int,
     );
   }
 }

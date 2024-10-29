@@ -6,16 +6,20 @@ import 'package:myproject/screens/profile.dart';
 import 'package:myproject/screens/sign_in.dart';
 import 'package:myproject/screens/sign_up.dart';
 import 'package:myproject/services/auth_service.dart';
+import 'package:myproject/services/notification_service.dart';
 import 'package:myproject/theme.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AndroidAlarmManager.initialize();
   await EasyLocalization.ensureInitialized();
+  tz.initializeTimeZones(); 
+  await NotificationService().init();
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('ar'), Locale('fr')], // Supported languages
+      supportedLocales: const [Locale('en'), Locale('ar'),], 
       path: 'assets/translations', 
       fallbackLocale: const Locale('en'), 
       child: MyApp(),
@@ -34,13 +38,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
-      locale: context.locale, // Set the current locale
+      locale: context.locale, 
 
       home: FutureBuilder<bool>(
         future: _authService.isLoggedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // While checking the auth status, show a loading spinner
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );

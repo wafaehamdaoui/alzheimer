@@ -14,13 +14,20 @@ class TaskService {
     return prefs.getString('auth_token'); 
   } 
 
+  Future<int> getUserID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id')??0; 
+  } 
+
   Future<List<Task>> getAllTasks() async {
     final token = await getToken();
+    final userId = await  getUserID();
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'UserId': '$userId',
       },
     );
     if (response.statusCode == 200) {
@@ -48,7 +55,7 @@ class TaskService {
     if (response.statusCode == 200) {
       return Task.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to add task');
+      throw Exception('Failed to add task: ${response.body}');
     }
   }
 
